@@ -1,4 +1,5 @@
 import { createSlice } from "@reduxjs/toolkit";
+import { uiActions } from "./ui-slice";
 
 const cartSlice = createSlice({
   name: "cart",
@@ -22,7 +23,8 @@ const cartSlice = createSlice({
         });
       } else {
         existingItem.quantity++;
-        existingItem.totalPrice = Number(existingItem.totalPrice) + Number(newItem.price);
+        existingItem.totalPrice =
+          Number(existingItem.totalPrice) + Number(newItem.price);
       }
     },
     removeItem(state, action) {
@@ -39,6 +41,51 @@ const cartSlice = createSlice({
     },
   },
 });
+
+export const sendDataToDB = (cart) => {
+  return async (dispatch) => {
+    dispatch(
+      uiActions.showNotification({
+        status: "pending",
+        title: "pending...",
+        message: "the request is pending",
+      })
+    );
+
+    const sendRequest = async () => {
+      const response = await fetch(
+        "https://redux-advanced-8c5e4-default-rtdb.europe-west1.firebasedatabase.app/cart.json",
+        {
+          method: "PUT",
+          body: JSON.stringify(cart),
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error("response failed");
+      }
+    };
+
+    try {
+      await sendRequest();
+      dispatch(
+        uiActions.showNotification({
+          status: "success",
+          title: "success!",
+          message: "request successfully completed ",
+        })
+      );
+    } catch (error) {
+      dispatch(
+        uiActions.showNotification({
+          status: "error",
+          title: "error!",
+          message: "request failed!",
+        })
+      );
+    }
+  };
+};
 
 export default cartSlice.reducer;
 
